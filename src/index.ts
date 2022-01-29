@@ -11,6 +11,11 @@ import {
   USER_KEYPAIR,
 } from "./constants";
 
+
+
+console.log('=================== process start ===================');
+
+// 交換可能な通貨ペアの情報を取得する
 const getPossiblePairsTokenInfo = ({
   tokens,
   routeMap,
@@ -20,6 +25,7 @@ const getPossiblePairsTokenInfo = ({
   routeMap: Map<string, string[]>;
   inputToken?: Token;
 }) => {
+
   try {
     if (!inputToken) {
       return {};
@@ -27,21 +33,28 @@ const getPossiblePairsTokenInfo = ({
 
     const possiblePairs = inputToken
       ? routeMap.get(inputToken.address) || []
-      : []; // return an array of token mints that can be swapped with SOL
+      : []; // SOL と交換可能なトークン・ミントの配列を返す
+
     const possiblePairsTokenInfo: { [key: string]: Token | undefined } = {};
+
     possiblePairs.forEach((address) => {
       possiblePairsTokenInfo[address] = tokens.find((t) => {
         return t.address == address;
       });
     });
+
     // Perform your conditionals here to use other outputToken
+    // ここで条件分岐を行い、他のoutputTokenを使用する
     // const alternativeOutputToken = possiblePairsTokenInfo[USDT_MINT_ADDRESS]
     return possiblePairsTokenInfo;
+
   } catch (error) {
     throw error;
   }
+
 };
 
+// 交換ルートを取得する
 const getRoutes = async ({
   jupiter,
   inputToken,
@@ -55,6 +68,7 @@ const getRoutes = async ({
   inputAmount: number;
   slippage: number;
 }) => {
+
   try {
     if (!inputToken || !outputToken) {
       return null;
@@ -64,6 +78,7 @@ const getRoutes = async ({
     const inputAmountInSmallestUnits = inputToken
       ? Math.round(inputAmount * 10 ** inputToken.decimals)
       : 0;
+
     const routes =
       inputToken && outputToken
         ? (await jupiter.computeRoutes(
@@ -82,11 +97,14 @@ const getRoutes = async ({
     } else {
       return null;
     }
+
   } catch (error) {
     throw error;
   }
+
 };
 
+// 通貨スワップを実行する
 const executeSwap = async ({
   jupiter,
   route,
@@ -94,6 +112,7 @@ const executeSwap = async ({
   jupiter: Jupiter;
   route: RouteInfo;
 }) => {
+
   try {
     // Prepare execute exchange
     const { execute } = await jupiter.exchange({
@@ -113,12 +132,16 @@ const executeSwap = async ({
         `inputAmount=${swapResult.inputAmount} outputAmount=${swapResult.outputAmount}`
       );
     }
+
   } catch (error) {
     throw error;
   }
+
 };
 
+// メイン処理
 const main = async () => {
+
   try {
     const connection = new Connection(SOLANA_RPC_ENDPOINT); // Setup Solana RPC connection
     const tokens: Token[] = await (await fetch(TOKEN_LIST_URL[ENV])).json(); // Fetch token list from Jupiter API
@@ -130,18 +153,22 @@ const main = async () => {
       user: USER_KEYPAIR, // or public key
     });
 
-    //  Get routeMap, which maps each tokenMint and their respective tokenMints that are swappable
+    //  Get routeMap, which maps each tokenMint and their respective tokenMj  ints that are swappable
     const routeMap = jupiter.getRouteMap();
 
-    // If you know which input/output pair you want
+    // // If you know which input/output pair you want 欲しい入出力ペアが決まっている場合
     const inputToken = tokens.find((t) => t.address == INPUT_MINT_ADDRESS); // USDC Mint Info
     const outputToken = tokens.find((t) => t.address == OUTPUT_MINT_ADDRESS); // USDT Mint Info
-    // Alternatively, find all possible outputToken based on your inputToken
+
+    // // Alternatively, find all possible outputToken based on your inputToken
+    // あるいは、inputToken に基づいて、可能なすべての outputToken を探します。
     const possiblePairsTokenInfo = await getPossiblePairsTokenInfo({
       tokens,
       routeMap,
       inputToken,
     });
+
+    console.log(possiblePairsTokenInfo);
 
     const routes = await getRoutes({
       jupiter,
@@ -151,8 +178,12 @@ const main = async () => {
       slippage: 1, // 1% slippage
     });
 
+    //console.log(routes);
+
     // Routes are sorted based on outputAmount, so ideally the first route is the best.
-    // await executeSwap({ jupiter, route: routes[0] });
+    // ルートはoutputAmountを基準にソートされるので、理想的には最初のルートがベストです。
+
+    //await executeSwap({ jupiter, route: routes[0] });
   } catch (error) {
     console.log({ error });
   }
