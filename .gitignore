@@ -3,3 +3,7 @@ node_modules
 .parcel-cache
 dist
 tsconfig.tsbuildinfo
+
+# chrome solllet wallet
+test-key-phrase.txt
+sollet.bak

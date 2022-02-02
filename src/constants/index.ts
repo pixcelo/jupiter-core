@@ -8,12 +8,16 @@ require('dotenv').config()
 export const ENV: Cluster = (process.env.cluster as Cluster) || "mainnet-beta";
 export const SOLANA_RPC_ENDPOINT = ENV === "devnet"
     ? 'https://api.devnet.solana.com'
+    //: "https://api.mainnet-beta.solana.com";
     : "https://solana-api.projectserum.com";
+//export const SOLANA_RPC_ENDPOINT = "https://solana-api.projectserum.com";
 
 // Wallets
-export const WALLET_PRIVATE_KEY = process.env.WALLET_PRIVATE_KEY || "PASTE YOUR WALLET PRIVATE KEY";
-export const USER_PRIVATE_KEY = bs58.decode(WALLET_PRIVATE_KEY);
-export const USER_KEYPAIR = Keypair.fromSecretKey(USER_PRIVATE_KEY);
+export const WALLET_PUBLIC_KEY  : string = process.env.WALLET_PUBLIC_KEY || "";
+export const USER_PUBLIC_KEY : Buffer = bs58.decode(WALLET_PUBLIC_KEY);
+export const WALLET_PRIVATE_KEY : string = process.env.WALLET_PRIVATE_KEY || "PASTE YOUR WALLET PRIVATE KEY";
+export const USER_PRIVATE_KEY : Buffer = bs58.decode(WALLET_PRIVATE_KEY);
+export const USER_KEYPAIR : Keypair = Keypair.fromSecretKey(USER_PRIVATE_KEY);
 
 // Token Mints
 export const INPUT_MINT_ADDRESS =
